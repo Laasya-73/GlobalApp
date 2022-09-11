@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous" />
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/20c5629a29.js" crossorigin="anonymous"></script>
+    <title>Login/Sign Up</title>
+</head>
+<body>
+
+
+<div class="form">
+      
+  
+  
+  <div class="tab-content">
+    <div id="signup">   
+      <h1>Sign Up for Free</h1>
+      
+      <form action="/register" method="post">
+      
+      <!-- <div class="top-row">
+        <div class="field-wrap">
+          <label>
+            First Name<span class="req">*</span>
+          </label>
+          <input type="text" required autocomplete="off" />
+        </div>
+    
+        <div class="field-wrap">
+          <label>
+            Last Name<span class="req">*</span>
+          </label>
+          <input type="text"required autocomplete="off"/>
+        </div>
+      </div> -->
+
+
+      <div class="field-wrap">
+        <label>
+          Email Address<span class="req">*</span>
+        </label>
+        <input type="email"required autocomplete="off" name="username"/>
+      </div>
+
+      <!-- <div class="field-wrap">
+          <label>
+            Phone no.<span class="req">*</span>
+          </label>
+          <input type="tel"required autocomplete="off"/>
+      </div>
+
+      <div class="field-wrap">
+          <label>
+            College/University Name<span class="req">*</span>
+          </label>
+          <input type="text"required autocomplete="off"/>
+        </div>
+      </div>
+       -->
+      
+      <div class="field-wrap">
+        <label>
+          Set A Password<span class="req">*</span>
+        </label>
+        <input type="password"required autocomplete="off" name="password"/>
+      </div>
+
+
+      <button type="submit" class="button button-block"/>Get Started</button>
+      
+      </form>
+
+    </div>
+    <br>
+    <div>
+      <a class="btn btn-dark" href="/auth/google" role="button">Sign In with Google</a>
+    </div>
+
+  </body>
+</html>
