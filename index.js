@@ -1,23 +1,81 @@
-var express = require('express');
+const express = require("express");
+const bodyParser = require("body-parser");
+const ejs = require("ejs");
+const mongoose=require("mongoose");
+const encrypt=require("mongoose-encryption");
+
+
 var app = express();
 
-app.use(express.static('/public'));
+app.use(express.static("/public"));
+app.set("view engine", "ejs");
+app.use(bodyParser.urlencoded({
+   extended: true
+ }));
 
+ mongoose.connect("mongodb://localhost:27017/userDB",{useNewUrlParser:true});
 
-app.get('/',  (req, res) => {
-   res.sendFile('public/home.html' , { root : __dirname});
+const userSchema=new mongoose.Schema({
+   email:String,
+   password:String
+});
+
+const secret="Thisisthesecretpasswordfortheglobalapp";
+
+userSchema.plugin(encrypt,{secret:secret,encryptedFields:["password"]});
+
+const User=new mongoose.model("User",userSchema);
+
+app.get("/",  (req, res) => {
+   res.render("home");
 });
 app.get("/login",(req,res)=>{
-   res.sendFile('public/login.html' , { root : __dirname});
+   res.render("login");
 })
 app.get("/afterlogin",(req,res)=>{
-   res.sendFile('public/afterlogin.html' , { root : __dirname});
+   res.render("afterlogin");
 })
 app.get("/forgot",(req,res)=>{
-   res.sendFile('public/forgot.html' , { root : __dirname});
+   res.render("forgot");
 })
 
-app.listen(3600, ()=> {
+app.post("/signup",(req,res)=>{
+
+   const newUser=new User({
+      email:req.body.username,
+      password:req.body.password
+   });
+   newUser.save((err)=>{
+      if(err){
+         console.log(err);
+      }
+      else{
+         res.send("Successfull");
+
+      }
+
+   });
+});
+
+app.post("/login",(req,res)=>{
+
+   const username=req.body.username;
+   const password=req.body.password;
+   console.log(username,password);
+   User.findOne({email:username},(err,foundUser)=>{
+      if(err){
+         console.log(err);
+      }
+      else{
+         if(foundUser && foundUser.password===password){
+            res.send("loggedIn");
+         }
+      }
+   })
+
+});
+
+app.listen(3000, ()=> {
    
-   console.log("Listening at 3600")
+   console.log("Listening at 3000")
 });
