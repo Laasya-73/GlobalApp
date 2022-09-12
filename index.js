@@ -39,7 +39,11 @@ mongoose.connect("mongodb://localhost:27017/userDB",{useNewUrlParser:true});
 
 const userSchema=new mongoose.Schema({
    email:String,
-   password:String
+   password:String,
+   firstName:String,
+   lastName:String,
+   phone:String,
+   college:String
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -114,12 +118,19 @@ app.get("/logout",(req,res)=>{
 
 app.post("/register",(req,res)=>{
 
-  User.register({username:req.body.username},req.body.password,(err,user)=>{
+  User.register({
+      username:req.body.username,
+      firstName:req.body.fname,
+      lastName:req.body.lname,
+      phone:req.body.phone,
+      college:req.body.college
+      },req.body.password,(err,user)=>{
       if(err){
          console.log(err);
          res.redirect("/login");
       }
       else{
+
          passport.authenticate("local")(req,res,()=>{
             res.redirect("/afterlogin");
          })
