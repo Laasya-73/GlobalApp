@@ -9,7 +9,7 @@ const passport=require("passport");
 const passportLocalMongoose=require("passport-local-mongoose");
 const GoogleStrategy=require("passport-google-oauth20").Strategy;
 const findOrCreate=require("mongoose-findorcreate");
-
+const port=3000 || process.env.PORT; 
 
 
 var app = express();
@@ -160,7 +160,7 @@ app.post("/login",(req,res)=>{
 
 });
 
-app.listen(3000, ()=> {
+app.listen(port, ()=> {
    
    console.log("Listening at 3000")
 });
