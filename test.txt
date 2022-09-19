@@ -1,0 +1,53 @@
+ 
+user{ //done
+   userid:object
+  email:String,
+  password:String,
+   firstName:String,
+   lastName:String,
+   phone:String,
+   college:CollegeID,
+   clubs: array of clubId
+
+}
+
+college { //done
+	CollegeID: objectid
+	name:String
+	clubNames:array of clubId
+	eventName: eventId
+	discussionForums: discussionId
+	Admin: userid
+   events:arrays of {
+         eventName: String,
+         description:String
+         date: numeric
+         }
+}
+
+discussion thread { // Done
+	discussionId: xyz
+   question: String,
+	comments:array of {userId:objectid,comment:String,upvotes:numeric}
+}
+
+college club {
+	clubId: objectid
+   name:String,
+	description: String
+	Admin: userid
+   messages:array of {
+	                  message: array of {name:userid,message:string}
+	                  createdAt: Date
+                     }
+   events:arrays of {
+         eventName: String,
+         description:String
+         date: numeric
+         }
+}
+
+
+globalClubs.com/jntuhces/coding --> unique
+
+

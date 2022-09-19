@@ -1,6 +1,7 @@
 
 require("dotenv").config();
 const express = require("express");
+const app = express();
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose=require("mongoose");
@@ -9,13 +10,26 @@ const passport=require("passport");
 const passportLocalMongoose=require("passport-local-mongoose");
 const GoogleStrategy=require("passport-google-oauth20").Strategy;
 const findOrCreate=require("mongoose-findorcreate");
-const port=3000 || process.env.PORT; 
+const http=require("http");
+const server=http.createServer(app);
+const {Server}=require("socket.io");
+const io = new Server(server);
+
+// var express = require('express')
+//   , http = require('http');
+
+// var app = express();
+// var server = http.createServer(app);
+// var io = require('socket.io').listen(server);
+
+const port=process.env.PORT || 3001; 
 
 
-var app = express();
 
+var clubname;
 
 app.use(express.static("/public"));
+app.use(express.static(__dirname));
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({
    extended: true
@@ -33,9 +47,10 @@ app.use(passport.initialize());
 
 app.use(passport.session());
 
+
+/////////////////////////////////connect database and user schema////////////////////////////////////
+
 mongoose.connect("mongodb://localhost:27017/userDB",{useNewUrlParser:true});
-
-
 
 const userSchema=new mongoose.Schema({
    email:String,
@@ -73,17 +88,6 @@ app.get("/",  (req, res) => {
    res.render("home");
 });
 
-app.get("/auth/google",(req,res)=>{
-
-   passport.authenticate("google");
-
-});
-
-app.get("/auth/google/afterlogin",
-passport.authenticate("google",{failureRedirect:"/login"}),(req,res)=>{
-   res.redirect("/afterlogin");
-
-});
 
 app.get("/login",(req,res)=>{
    res.render("login");
@@ -91,7 +95,13 @@ app.get("/login",(req,res)=>{
 
 app.get("/register",(req,res)=>{
    res.render("register");
-})
+});
+app.get("/forgot",(req,res)=>{
+   res.render("forgot");
+});
+
+
+//////////////////////////////Local Authentication Part/////////////////////////////////////////////
 app.get("/afterlogin",(req,res)=>{
    if(req.isAuthenticated()){
       res.render("afterlogin");
@@ -99,11 +109,17 @@ app.get("/afterlogin",(req,res)=>{
    else{
       res.redirect("/login");
    }
+   User.find({ username: req.body.username}, function (err, docs) {
+      if (err){
+         console.log(err);
+      }
+      else{
+         college= docs[0].college
+      }
+  });
    
 });
-app.get("/forgot",(req,res)=>{
-   res.render("forgot");
-});
+
 
 app.get("/logout",(req,res)=>{
 
@@ -133,7 +149,8 @@ app.post("/register",(req,res)=>{
 
          passport.authenticate("local")(req,res,()=>{
             res.redirect("/afterlogin");
-         })
+         });
+         college=req.body.college;
       }
   })
 
@@ -155,12 +172,82 @@ app.post("/login",(req,res)=>{
          passport.authenticate("local")(req,res,()=>{
             res.redirect("/afterlogin");
          });
+         User.find({ username: req.body.username}, function (err, docs) {
+            if (err){
+               console.log(err);
+            }
+            else{
+               college= docs[0].college
+            }
+        });
       }
    })
 
 });
 
+//////////////////////////////////google OAuth(didn't work)//////////////////////////////////////////
+
+app.get("/auth/google",(req,res)=>{
+
+   passport.authenticate("google");
+
+});
+
+app.get("/auth/google/afterlogin",
+passport.authenticate("google",{failureRedirect:"/login"}),(req,res)=>{
+   res.redirect("/afterlogin");
+
+});
+
+/////////////////////////////Chat system with  profile page (Failed)////////////////////////////////
+
+
+app.get("/afterlogin/profile",(req,res)=>{
+   if(req.isAuthenticated()){
+      res.render("profile");
+   }
+   else{
+      res.redirect("/login");
+   }
+
+});
+
+app.get("/afterlogin/college/:clubname",(req,res)=>{
+
+    clubname=req.params["clubname"];
+    res.render("chat");
+});
+app.get("/chat",(req,res)=>{
+
+   
+   res.sendFile(__dirname+"/page1.html");
+});
+app.get("/get-club",(req,res)=>{
+   
+    res.json(clubname);
+    
+});
+
+
+const myNamespaceIO=io.of("/admin");
+myNamespaceIO.on('connect', (socket) => {
+    console.log("user connected");
+    socket.on("join",(data)=>{
+        socket.join(data.room);
+        myNamespaceIO.in(data.room).emit("chat message",`new person joined the ${data.room}`);
+    })
+
+    socket.on('chat message', (data) => {
+        console.log("chat msg",data);
+        myNamespaceIO.in(data.room).emit('chat message', data.msg);
+    });
+    
+    socket.on('disconnect', () => {
+      console.log('user disconnected');
+    });
+});
+
 app.listen(port, ()=> {
    
-   console.log("Listening at 3000")
+   console.log("Listening at ",port)
 });
