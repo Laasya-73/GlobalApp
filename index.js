@@ -15,14 +15,8 @@ const server=http.createServer(app);
 const {Server}=require("socket.io");
 const io = new Server(server);
 
-// var express = require('express')
-//   , http = require('http');
 
-// var app = express();
-// var server = http.createServer(app);
-// var io = require('socket.io').listen(server);
-
-const port=process.env.PORT || 3001; 
+const port=process.env.PORT || 3000; 
 
 
 
@@ -102,6 +96,8 @@ app.get("/forgot",(req,res)=>{
 
 
 //////////////////////////////Local Authentication Part/////////////////////////////////////////////
+
+
 app.get("/afterlogin",(req,res)=>{
    if(req.isAuthenticated()){
       res.render("afterlogin");
@@ -143,14 +139,15 @@ app.post("/register",(req,res)=>{
       },req.body.password,(err,user)=>{
       if(err){
          console.log(err);
+      
          res.redirect("/login");
       }
       else{
-
+         college=req.body.college;
          passport.authenticate("local")(req,res,()=>{
             res.redirect("/afterlogin");
          });
-         college=req.body.college;
+         
       }
   })
 
@@ -246,6 +243,8 @@ myNamespaceIO.on('connect', (socket) => {
       console.log('user disconnected');
     });
 });
+
+///////////////////////////////Listening to Port 3000////////////////////////////////////////////////
 
 app.listen(port, ()=> {
    
