@@ -103,6 +103,7 @@ app.get("/colleges",(req,res)=>{
 });
 
 
+
 app.get("/aboutus",(req,res)=>{
    res.render("about");
 });
@@ -112,26 +113,13 @@ app.get("/aboutus",(req,res)=>{
 
 // });
 
-//////////////////////////////Local Authentication Part/////////////////////////////////////////////
+app.get("/login/myprofile",(req,res)=>{
 
-
-app.get("/afterlogin",(req,res)=>{
-   if(req.isAuthenticated()){
-      res.render("afterlogin");
-   }
-   else{
-      res.redirect("/login");
-   }
-   User.find({ username: req.body.username}, function (err, docs) {
-      if (err){
-         console.log(err);
-      }
-      else{
-        // college= docs[0].college
-      }
-  });
+   middlewareAuthentication(req,res,"afterlogin/myprofile");
    
 });
+
+//////////////////////////////Local Authentication Part/////////////////////////////////////////////
 
 
 app.get("/logout",(req,res)=>{
@@ -166,7 +154,7 @@ app.post("/register",(req,res)=>{
             }
             else{
                passport.authenticate("local")(req,res,()=>{
-                  res.redirect("/afterlogin");
+                  res.redirect("/login/myprofile");
                });
                
             }
@@ -175,8 +163,6 @@ app.post("/register",(req,res)=>{
 
    })
    
-  
-
 });
 
 app.post("/login",(req,res)=>{
@@ -192,7 +178,8 @@ app.post("/login",(req,res)=>{
       }
       else{
          passport.authenticate("local")(req,res,()=>{
-            res.redirect("/afterlogin");
+            console.log(req.user);
+            res.redirect("/login/myprofile");
          });
          User.find({ username: req.body.username}, function (err, docs) {
             if (err){
@@ -276,3 +263,13 @@ app.listen(port, ()=> {
    
    console.log("Listening at ",port)
 });
+
+
+const middlewareAuthentication=(req,res,route)=>{
+   if(req.isAuthenticated()){
+      res.render(route);
+   }
+   else{
+      res.redirect("/login");
+   }
+}
