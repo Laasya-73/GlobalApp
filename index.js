@@ -19,11 +19,8 @@ const io = new Server(server);
 const port=process.env.PORT || 3000; 
 
 
-
-var clubname;
-
 app.use(express.static("/public"));
-app.use(express.static(__dirname));
+
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({
    extended: true
@@ -52,13 +49,18 @@ const userSchema=new mongoose.Schema({
    firstName:String,
    lastName:String,
    phone:String,
-   college:String
+   college: mongoose.ObjectId 
+});
+
+const collegeSchema=new mongoose.Schema({
+   collegename:String,
+   collegeid:String
 });
 
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
 const User=new mongoose.model("User",userSchema);
-
+const College=new mongoose.model("College",collegeSchema);
 passport.use(User.createStrategy());
 
 passport.serializeUser(User.serializeUser());
@@ -78,6 +80,8 @@ passport.use(new GoogleStrategy({
 ));
 
 
+//////////////////////////////////The Routes for the Common Pages////////////////////////////////////
+
 app.get("/",  (req, res) => {
    res.render("home");
 });
@@ -94,6 +98,19 @@ app.get("/forgot",(req,res)=>{
    res.render("forgot");
 });
 
+app.get("/colleges",(req,res)=>{
+   res.render("allcolleges");
+});
+
+
+app.get("/aboutus",(req,res)=>{
+   res.render("about");
+});
+
+// app.get("/colleges/:college",(req,res)=>{
+//    res.render("college",{collegeName:req.params.college});
+
+// });
 
 //////////////////////////////Local Authentication Part/////////////////////////////////////////////
 
@@ -110,7 +127,7 @@ app.get("/afterlogin",(req,res)=>{
          console.log(err);
       }
       else{
-         college= docs[0].college
+        // college= docs[0].college
       }
   });
    
@@ -129,29 +146,37 @@ app.get("/logout",(req,res)=>{
 
 
 app.post("/register",(req,res)=>{
-
-  User.register({
-      username:req.body.username,
-      firstName:req.body.fname,
-      lastName:req.body.lname,
-      phone:req.body.phone,
-      college:req.body.college
-      },req.body.password,(err,user)=>{
+   
+   College.findOne({collegename:req.body.college},(err,doc)=>{
       if(err){
-         console.log(err);
-      
-         res.redirect("/login");
+         console.log("register ",err);
       }
       else{
-         college=req.body.college;
-         passport.authenticate("local")(req,res,()=>{
-            res.redirect("/afterlogin");
-         });
-         
+         console.log(doc.id);
+         User.register({
+            username:req.body.username,
+            firstName:req.body.fname,
+            lastName:req.body.lname,
+            phone:req.body.phone,
+            college:doc.id
+            },req.body.password,(err,user)=>{
+            if(err){
+               console.log(err);
+               res.redirect("/login");
+            }
+            else{
+               passport.authenticate("local")(req,res,()=>{
+                  res.redirect("/afterlogin");
+               });
+               
+            }
+        });
       }
-  })
 
+   })
    
+  
+
 });
 
 app.post("/login",(req,res)=>{
@@ -174,7 +199,8 @@ app.post("/login",(req,res)=>{
                console.log(err);
             }
             else{
-               college= docs[0].college
+               //college= docs[0].college
+               console.log("Ok");
             }
         });
       }
