@@ -1,5 +1,10 @@
 <%- include("partials/header") -%>
-<%- include("partials/beforeLoginNavbar") -%>
+
+<% if(authentication == true) {%>
+  <%- include("partials/afterLoginNavbar") -%>
+<% } else { %>
+  <%- include("partials/beforeLoginNavbar") -%>
+<% } %>
 <div class="articles-sec">
     <div id="carouselExampleCaptions" class="carousel slide" data-ride="carousel">
         <ol class="carousel-indicators">

@@ -1,0 +1,11 @@
+<%- include("partials/header") -%>
+
+<% if(authentication == true) {%>
+  <%- include("partials/afterLoginNavbar") -%>
+<% } else { %>
+  <%- include("partials/beforeLoginNavbar") -%>
+<% } %>
+
+<h1>JNTUHCES</h1>
+
+<%- include("partials/footer") -%>

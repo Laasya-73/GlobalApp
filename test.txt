@@ -1,4 +1,35 @@
  
+user{ 
+   userid:object
+  email:String,
+  password:String,
+   firstName:String,
+   lastName:String,
+   phone:String,
+   college:CollegeID,
+   clubs: array of clubId
+   requests : array of Strings
+}
+
+college{
+   CollegeID: objectid
+	name:String
+	clubNames:array of clubId
+   students : array of userId
+   leader : userId
+}
+
+club{
+   clubId: objectid
+   name:String,
+	description: String
+   students : array of userId
+   leader : userId
+}
+
+
+
+
 user{ //done
    userid:object
   email:String,

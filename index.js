@@ -80,10 +80,10 @@ passport.use(new GoogleStrategy({
 ));
 
 
-//////////////////////////////////The Routes for the Common Pages////////////////////////////////////
+/////////////////////The Routes for the Common Pages before Login////////////////////////////////////
 
 app.get("/",  (req, res) => {
-   res.render("home");
+   res.render("home",{authentication:false});
 });
 
 
@@ -99,14 +99,16 @@ app.get("/forgot",(req,res)=>{
 });
 
 app.get("/colleges",(req,res)=>{
-   res.render("allcolleges");
+   res.render("allcolleges",{authentication:false});
 });
-
-
 
 app.get("/aboutus",(req,res)=>{
-   res.render("about");
+   
+   res.render("about",{authentication:false});
+
 });
+
+///////////////////////////////Routes for pages after login//////////////////////////////////////////
 
 // app.get("/colleges/:college",(req,res)=>{
 //    res.render("college",{collegeName:req.params.college});
@@ -118,6 +120,57 @@ app.get("/login/myprofile",(req,res)=>{
    middlewareAuthentication(req,res,"afterlogin/myprofile");
    
 });
+
+app.get("/login/colleges/college",(req,res)=>{
+ 
+   if(req.isAuthenticated()){
+
+      res.render("college",{authentication:true});  
+   }
+   else{
+      res.redirect("/login");
+   }
+      
+     
+   
+})
+
+app.get("/login/home",(req,res)=>{
+ 
+   if(req.isAuthenticated()){
+
+      res.render("home",{authentication:true});  
+   }
+   else{
+      res.redirect("/");
+   }
+      
+     
+   
+})
+app.get("/login/aboutus",(req,res)=>{
+
+   if(req.isAuthenticated()){
+
+      res.render("about",{authentication:true});  
+   }
+   else{
+      res.redirect("/aboutus");
+   }
+      
+   
+})
+app.get("/login/colleges",(req,res)=>{
+   if(req.isAuthenticated()){
+
+      res.render("allcolleges",{authentication:true});  
+   }
+   else{
+      res.redirect("/colleges");
+   }
+    
+   
+})
 
 //////////////////////////////Local Authentication Part/////////////////////////////////////////////
 
@@ -154,7 +207,7 @@ app.post("/register",(req,res)=>{
             }
             else{
                passport.authenticate("local")(req,res,()=>{
-                  res.redirect("/login/myprofile");
+                  res.redirect("/login/home");
                });
                
             }
@@ -178,18 +231,10 @@ app.post("/login",(req,res)=>{
       }
       else{
          passport.authenticate("local")(req,res,()=>{
-            console.log(req.user);
-            res.redirect("/login/myprofile");
+            
+            res.redirect("/login/home");
          });
-         User.find({ username: req.body.username}, function (err, docs) {
-            if (err){
-               console.log(err);
-            }
-            else{
-               //college= docs[0].college
-               console.log("Ok");
-            }
-        });
+         
       }
    })
 
@@ -267,9 +312,20 @@ app.listen(port, ()=> {
 
 const middlewareAuthentication=(req,res,route)=>{
    if(req.isAuthenticated()){
-      res.render(route);
+      
+      res.render(route,{authentication:true});
    }
    else{
       res.redirect("/login");
    }
 }
+
+// const details=req.user;
+//       College.find({_id:details.college},(err,docs)=>{
+//          if(err){
+//             console.log(err);
+//          }
+//          else{
+//             console.log(docs);
+//          }
+//       });
