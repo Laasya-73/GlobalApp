@@ -88,7 +88,8 @@ app.get("/",  (req, res) => {
 
 
 app.get("/login",(req,res)=>{
-   res.render("login");
+
+   res.render("login",{Message:"Enter username and password"});
 });
 
 app.get("/register",(req,res)=>{
@@ -115,13 +116,13 @@ app.get("/aboutus",(req,res)=>{
 
 // });
 
-app.get("/login/myprofile",(req,res)=>{
+app.get("/loggedin/myprofile",(req,res)=>{
 
    middlewareAuthentication(req,res,"afterlogin/myprofile");
    
 });
 
-app.get("/login/colleges/college",(req,res)=>{
+app.get("/loggedin/colleges/college",(req,res)=>{
  
    if(req.isAuthenticated()){
 
@@ -135,7 +136,7 @@ app.get("/login/colleges/college",(req,res)=>{
    
 })
 
-app.get("/login/home",(req,res)=>{
+app.get("/loggedin/home",(req,res)=>{
  
    if(req.isAuthenticated()){
 
@@ -148,7 +149,7 @@ app.get("/login/home",(req,res)=>{
      
    
 })
-app.get("/login/aboutus",(req,res)=>{
+app.get("/loggedin/aboutus",(req,res)=>{
 
    if(req.isAuthenticated()){
 
@@ -160,7 +161,7 @@ app.get("/login/aboutus",(req,res)=>{
       
    
 })
-app.get("/login/colleges",(req,res)=>{
+app.get("/loggedin/colleges",(req,res)=>{
    if(req.isAuthenticated()){
 
       res.render("allcolleges",{authentication:true});  
@@ -224,21 +225,26 @@ app.post("/login",(req,res)=>{
       username:req.body.username,
       password:req.body.password
    });
-
+  
    req.login(user,(err)=>{
       if(err){
          console.log(err);
       }
       else{
-         passport.authenticate("local")(req,res,()=>{
+         passport.authenticate("local", {failureRedirect:'/loginerror' })(req,res,()=>{
             
-            res.redirect("/login/home");
+            res.redirect("/loggedin/home");
          });
          
       }
    })
 
 });
+
+app.get("/loginerror",(req,res)=>{
+   res.render("login",{Message:"Email or the password is incorrect"});
+})
+
 
 //////////////////////////////////google OAuth(didn't work)//////////////////////////////////////////
 
