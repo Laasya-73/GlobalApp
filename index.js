@@ -1,6 +1,7 @@
 
 require("dotenv").config();
 const express = require("express");
+const app = express();
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose=require("mongoose");
@@ -9,13 +10,17 @@ const passport=require("passport");
 const passportLocalMongoose=require("passport-local-mongoose");
 const GoogleStrategy=require("passport-google-oauth20").Strategy;
 const findOrCreate=require("mongoose-findorcreate");
-const port=3000 || process.env.PORT; 
+const http=require("http");
+const server=http.createServer(app);
+const {Server}=require("socket.io");
+const io = new Server(server);
 
 
-var app = express();
+const port=process.env.PORT || 3000; 
 
 
 app.use(express.static("/public"));
+
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({
    extended: true
@@ -33,9 +38,10 @@ app.use(passport.initialize());
 
 app.use(passport.session());
 
+
+/////////////////////////////////connect database and user schema////////////////////////////////////
+
 mongoose.connect("mongodb://localhost:27017/userDB",{useNewUrlParser:true});
-
-
 
 const userSchema=new mongoose.Schema({
    email:String,
@@ -43,13 +49,18 @@ const userSchema=new mongoose.Schema({
    firstName:String,
    lastName:String,
    phone:String,
-   college:String
+   college: mongoose.ObjectId 
+});
+
+const collegeSchema=new mongoose.Schema({
+   collegename:String,
+   collegeid:String
 });
 
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
 const User=new mongoose.model("User",userSchema);
-
+const College=new mongoose.model("College",collegeSchema);
 passport.use(User.createStrategy());
 
 passport.serializeUser(User.serializeUser());
@@ -69,21 +80,12 @@ passport.use(new GoogleStrategy({
 ));
 
 
+/////////////////////The Routes for the Common Pages before Login////////////////////////////////////
+
 app.get("/",  (req, res) => {
-   res.render("home");
+   res.render("home",{authentication:false});
 });
 
-app.get("/auth/google",(req,res)=>{
-
-   passport.authenticate("google");
-
-});
-
-app.get("/auth/google/afterlogin",
-passport.authenticate("google",{failureRedirect:"/login"}),(req,res)=>{
-   res.redirect("/afterlogin");
-
-});
 
 app.get("/login",(req,res)=>{
    res.render("login");
@@ -91,19 +93,87 @@ app.get("/login",(req,res)=>{
 
 app.get("/register",(req,res)=>{
    res.render("register");
-})
-app.get("/afterlogin",(req,res)=>{
-   if(req.isAuthenticated()){
-      res.render("afterlogin");
-   }
-   else{
-      res.redirect("/login");
-   }
-   
 });
 app.get("/forgot",(req,res)=>{
    res.render("forgot");
 });
+
+app.get("/colleges",(req,res)=>{
+   res.render("allcolleges",{authentication:false});
+});
+
+app.get("/aboutus",(req,res)=>{
+   
+   res.render("about",{authentication:false});
+
+});
+
+///////////////////////////////Routes for pages after login//////////////////////////////////////////
+
+// app.get("/colleges/:college",(req,res)=>{
+//    res.render("college",{collegeName:req.params.college});
+
+// });
+
+app.get("/login/myprofile",(req,res)=>{
+
+   middlewareAuthentication(req,res,"afterlogin/myprofile");
+   
+});
+
+app.get("/login/colleges/college",(req,res)=>{
+ 
+   if(req.isAuthenticated()){
+
+      res.render("college",{authentication:true});  
+   }
+   else{
+      res.redirect("/login");
+   }
+      
+     
+   
+})
+
+app.get("/login/home",(req,res)=>{
+ 
+   if(req.isAuthenticated()){
+
+      res.render("home",{authentication:true});  
+   }
+   else{
+      res.redirect("/");
+   }
+      
+     
+   
+})
+app.get("/login/aboutus",(req,res)=>{
+
+   if(req.isAuthenticated()){
+
+      res.render("about",{authentication:true});  
+   }
+   else{
+      res.redirect("/aboutus");
+   }
+      
+   
+})
+app.get("/login/colleges",(req,res)=>{
+   if(req.isAuthenticated()){
+
+      res.render("allcolleges",{authentication:true});  
+   }
+   else{
+      res.redirect("/colleges");
+   }
+    
+   
+})
+
+//////////////////////////////Local Authentication Part/////////////////////////////////////////////
+
 
 app.get("/logout",(req,res)=>{
 
@@ -117,26 +187,34 @@ app.get("/logout",(req,res)=>{
 
 
 app.post("/register",(req,res)=>{
-
-  User.register({
-      username:req.body.username,
-      firstName:req.body.fname,
-      lastName:req.body.lname,
-      phone:req.body.phone,
-      college:req.body.college
-      },req.body.password,(err,user)=>{
+   
+   College.findOne({collegename:req.body.college},(err,doc)=>{
       if(err){
-         console.log(err);
-         res.redirect("/login");
+         console.log("register ",err);
       }
       else{
-
-         passport.authenticate("local")(req,res,()=>{
-            res.redirect("/afterlogin");
-         })
+         console.log(doc.id);
+         User.register({
+            username:req.body.username,
+            firstName:req.body.fname,
+            lastName:req.body.lname,
+            phone:req.body.phone,
+            college:doc.id
+            },req.body.password,(err,user)=>{
+            if(err){
+               console.log(err);
+               res.redirect("/login");
+            }
+            else{
+               passport.authenticate("local")(req,res,()=>{
+                  res.redirect("/login/home");
+               });
+               
+            }
+        });
       }
-  })
 
+   })
    
 });
 
@@ -153,14 +231,101 @@ app.post("/login",(req,res)=>{
       }
       else{
          passport.authenticate("local")(req,res,()=>{
-            res.redirect("/afterlogin");
+            
+            res.redirect("/login/home");
          });
+         
       }
    })
 
 });
 
+//////////////////////////////////google OAuth(didn't work)//////////////////////////////////////////
+
+app.get("/auth/google",(req,res)=>{
+
+   passport.authenticate("google");
+
+});
+
+app.get("/auth/google/afterlogin",
+passport.authenticate("google",{failureRedirect:"/login"}),(req,res)=>{
+   res.redirect("/afterlogin");
+
+});
+
+/////////////////////////////Chat system with  profile page (Failed)////////////////////////////////
+
+
+app.get("/afterlogin/profile",(req,res)=>{
+   if(req.isAuthenticated()){
+      res.render("profile");
+   }
+   else{
+      res.redirect("/login");
+   }
+
+});
+
+app.get("/afterlogin/college/:clubname",(req,res)=>{
+
+    clubname=req.params["clubname"];
+    res.render("chat");
+});
+app.get("/chat",(req,res)=>{
+
+   
+   res.sendFile(__dirname+"/page1.html");
+});
+app.get("/get-club",(req,res)=>{
+   
+    res.json(clubname);
+    
+});
+
+
+const myNamespaceIO=io.of("/admin");
+myNamespaceIO.on('connect', (socket) => {
+    console.log("user connected");
+    socket.on("join",(data)=>{
+        socket.join(data.room);
+        myNamespaceIO.in(data.room).emit("chat message",`new person joined the ${data.room}`);
+    })
+
+    socket.on('chat message', (data) => {
+        console.log("chat msg",data);
+        myNamespaceIO.in(data.room).emit('chat message', data.msg);
+    });
+    
+    socket.on('disconnect', () => {
+      console.log('user disconnected');
+    });
+});
+
+///////////////////////////////Listening to Port 3000////////////////////////////////////////////////
+
 app.listen(port, ()=> {
    
-   console.log("Listening at 3000")
+   console.log("Listening at ",port)
 });
+
+
+const middlewareAuthentication=(req,res,route)=>{
+   if(req.isAuthenticated()){
+      
+      res.render(route,{authentication:true});
+   }
+   else{
+      res.redirect("/login");
+   }
+}
+
+// const details=req.user;
+//       College.find({_id:details.college},(err,docs)=>{
+//          if(err){
+//             console.log(err);
+//          }
+//          else{
+//             console.log(docs);
+//          }
+//       });
