@@ -11,7 +11,7 @@
 <h2>Number of participants: <%= NumberOfStudents %></h2>
 
 <p><%= Description %></p>
-
+<a href="<%= `/colleges/${Collegename}/${Clubname}/list/students` %>"> List of Participants </a> 
 <a href="<%= `/colleges/${Collegename}/${Clubname}/join` %>">Join</a>
 
 <%- include("partials/footer") -%>

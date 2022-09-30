@@ -3,12 +3,20 @@
 
 <h1>My profile</h1>
 
+<h2>Your college: <%=CollegeName %></h2>
+
 <h2>Clubs You joined</h2>
 
+<h3>Number of Clubs: <%= Clubs.length %></h3>
+
 <ul>
-  <% Clubs.forEach((club)=>{ %>
-    <li><%= club %></li>
-  <% }) %>
+  <% if(Clubs.length>0){ %>
+    <% Clubs.forEach((club)=>{ %>
+      <li> <a href="<%= `/colleges/${CollegeName}/${club}` %>"> <%= club %> </a> </li>
+    <% }) %>
+  <% } else { %>
+    <h3>You joined in no clubs</h3>
+  <% } %>
 </ul>
 
 <%- include("../partials/footer") -%>

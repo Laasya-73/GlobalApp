@@ -136,7 +136,9 @@ app.get("/",  (req, res) => {
 
 app.get("/login",(req,res)=>{
 
-   res.render("login",{Message:"Enter username and password"});
+   res.render("login",{
+      Message:"Enter username and password"
+   });
 });
 
 app.get("/register",(req,res)=>{
@@ -155,7 +157,10 @@ app.get("/colleges",(req,res)=>{ // common route for both login and without logi
          clgMap.push(clg.collegename);
       });
       console.log(clgMap);
-      res.render("allcolleges",{authentication:checkAuthentication(req),colleges:clgMap});
+      res.render("allcolleges",{
+         authentication:checkAuthentication(req),
+         colleges:clgMap
+      });
 
    })
    
@@ -163,7 +168,9 @@ app.get("/colleges",(req,res)=>{ // common route for both login and without logi
 
 app.get("/aboutus",(req,res)=>{
    
-   res.render("about",{authentication:checkAuthentication(req)});
+   res.render("about",{
+      authentication:checkAuthentication(req)
+   });
 
 });
 
@@ -184,7 +191,11 @@ app.get("/colleges/:collegename",(req,res)=>{
                clubs.forEach((club)=>{
                   clubMap.push(club.clubname);
                });
-               res.render("college",{authentication:checkAuthentication(req),CollegeName:req.params.collegename,clubs:clubMap,NumberOfStudents:clg.students.length});
+               res.render("college",{
+                  authentication:checkAuthentication(req),
+                  CollegeName:req.params.collegename,
+                  clubs:clubMap,
+                  NumberOfStudents:clg.students.length});
       
             }
          });
@@ -207,7 +218,12 @@ app.get("/colleges/:collegename/:club",(req,res)=>{
             }
             else{
                
-               res.render("club",{authentication:checkAuthentication(req),NumberOfStudents:club.students.length,Collegename:req.params.collegename,Clubname:club.clubname,Description:club.description});
+               res.render("club",{
+                  authentication:checkAuthentication(req),
+                  NumberOfStudents:club.students.length,
+                  Collegename:req.params.collegename,
+                  Clubname:club.clubname,
+                  Description:club.description});
       
             }
          });
@@ -229,7 +245,7 @@ app.get("/colleges/:collegename/list/students",(req,res)=>{
 
          res.render("listofstudents",{
             authentication:checkAuthentication(req),
-            CollegeName:req.params.collegename,
+            Name:req.params.collegename,
             NumberOfStudents:students.length,
             Students:students
          });
@@ -243,7 +259,11 @@ app.get("/colleges/:collegename/:club/join",(req,res)=>{
 
    if(req.isAuthenticated()){
 
-      res.render("afterlogin/joinclubform",{Prompt:"Join Re",CollegeName:req.params.collegename,ClubName:req.params.club})
+      res.render("afterlogin/joinclubform",{
+         Prompt:"Join Re",
+         CollegeName:req.params.collegename,
+         ClubName:req.params.club
+      })
 
    }
    else{
@@ -295,8 +315,11 @@ app.post("/colleges/:collegename/:club/join",(req,res)=>{
 
       }
       else{
-         res.render("afterlogin/joinclubform",{Prompt:"Enter valid Email Address",
-            CollegeName:req.params.collegename,ClubName:req.params.club})
+         res.render("afterlogin/joinclubform",{
+            Prompt:"Enter valid Email Address",
+            CollegeName:req.params.collegename,
+            ClubName:req.params.club
+         })
 
       }
    }
@@ -306,6 +329,28 @@ app.post("/colleges/:collegename/:club/join",(req,res)=>{
 
 
 });
+
+app.get("/colleges/:CollegeName/:club/list/students",(req,res)=>{
+   College.findOne({collegename:req.params.CollegeName},(err,clg)=>{
+      if(err){
+         console.log(err);
+      }
+      else{
+         Club.findOne({collegeid:clg.collegeid,clubname:req.params.club},(err,club)=>{
+
+            res.render("listofstudents",{
+               authentication:checkAuthentication(req),
+               Name:req.params.club,
+               NumberOfStudents:club.students.length,
+               Students:club.students
+            });
+
+         })
+      }
+   })
+   
+   
+})
 
 
 
@@ -317,8 +362,21 @@ app.get("/loggedin/myprofile",(req,res)=>{
 
    if(req.isAuthenticated()){
 
+      College.findOne({collegeid:req.user.college},(err,clg)=>{
 
-      res.render("afterlogin/myprofile",{Clubs:req.user.clubs});
+         if(err){
+            console.log(err);
+         }
+         else{
+            res.render("afterlogin/myprofile",
+            {
+               Clubs:req.user.clubs,
+               CollegeName:clg.collegename
+            });
+         }
+
+      })
+      
    }
    else{
       res.redirect("/login");
@@ -337,7 +395,10 @@ app.get("/loggedin/colleges/college",(req,res)=>{
             console.log(err);
          }
          else{
-            res.render("college",{authentication:true,CollegeName:doc.collegename}); 
+            res.render("college",{
+               authentication:true,
+               CollegeName:doc.collegename
+            }); 
          }
 
       })
@@ -430,7 +491,9 @@ app.post("/login",(req,res)=>{
 });
 
 app.get("/loginerror",(req,res)=>{
-   res.render("login",{Message:"Email or the password is incorrect"});
+   res.render("login",{
+      Message:"Email or the password is incorrect"
+   });
 })
 
 

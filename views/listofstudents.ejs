@@ -6,9 +6,7 @@
   <%- include("partials/beforeLoginNavbar") -%>
 <% } %>
 
-<h1><%= CollegeName %></h1>
-
-<p>This is just the stupid intro to the college</p>
+<h1><%= Name %></h1>
 
 <h2>Number of students: <%= NumberOfStudents %></h2>
 
@@ -23,7 +21,7 @@
 
      <% }); %>
   <% } else { %>
-    No Students added to your college.
+   <h3> No Students added to <%= Name %>.</h3>
   <% } %>
   
 </ul>
