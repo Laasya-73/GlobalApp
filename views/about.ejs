@@ -1,0 +1,13 @@
+<%- include("partials/header") -%>
+
+<% if(authentication == true) {%>
+  <%- include("partials/afterLoginNavbar") -%>
+<% } else { %>
+  <%- include("partials/beforeLoginNavbar") -%>
+<% } %>
+
+<h1>About the Global Clubs</h1>
+
+<p>Lorem Ipsum</p>
+
+<%- include("partials/footer") -%>

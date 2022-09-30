@@ -1,0 +1,20 @@
+<%- include("partials/header") -%>
+
+<% if(authentication == true) {%>
+  <%- include("partials/afterLoginNavbar") -%>
+<% } else { %>
+  <%- include("partials/beforeLoginNavbar") -%>
+<% } %>
+
+<h1>List of Enrolled Colleges</h1>
+
+<ul>
+
+  <% colleges.forEach(function(college){ %>
+      <li> <a href="<%= `/colleges/${college}` %>"> <%= college %> </a></li>
+  <% }); %>
+
+</ul>
+
+
+<%- include("partials/footer") -%>

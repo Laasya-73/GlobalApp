@@ -1,0 +1,28 @@
+<%- include("partials/header") -%>
+
+<% if(authentication == true) {%>
+  <%- include("partials/afterLoginNavbar") -%>
+<% } else { %>
+  <%- include("partials/beforeLoginNavbar") -%>
+<% } %>
+
+<h1><%= Name %></h1>
+
+<h2>Number of students: <%= NumberOfStudents %></h2>
+
+<h2>List of Students</h2>
+
+<ul>
+  <% if(Students.length > 0){ %>
+
+      <% Students.forEach((Student)=>{ %>
+
+        <li> <a href=""> <%= Student %></a></li>
+
+     <% }); %>
+  <% } else { %>
+   <h3> No Students added to <%= Name %>.</h3>
+  <% } %>
+  
+</ul>
+<%- include("partials/footer") -%>

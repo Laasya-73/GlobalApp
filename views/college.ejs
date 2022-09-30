@@ -1,0 +1,32 @@
+<%- include("partials/header") -%>
+
+<% if(authentication == true) {%>
+  <%- include("partials/afterLoginNavbar") -%>
+<% } else { %>
+  <%- include("partials/beforeLoginNavbar") -%>
+<% } %>
+
+<h1><%= CollegeName %></h1>
+
+<p>This is just the stupid intro to the college</p>
+
+<h2>Number of students: <%= NumberOfStudents %></h2>
+
+<a href="<%= `/colleges/${CollegeName}/list/students` %>">List of students</a>
+
+<h2>List of clubs</h2>
+
+<ul>
+  <% if(clubs.length > 0){ %>
+
+      <% clubs.forEach((club)=>{ %>
+
+        <li> <a href="<%= `/colleges/${CollegeName}/${club}` %>"> <%= club %></a></li>
+
+     <% }); %>
+  <% } else { %>
+    No clubs added to your college.
+  <% } %>
+  
+</ul>
+<%- include("partials/footer") -%>
