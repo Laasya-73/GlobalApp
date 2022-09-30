@@ -16,6 +16,7 @@ const {Server}=require("socket.io");
 const io = new Server(server);
 
 
+
 const port=process.env.PORT || 3000; 
 
 
@@ -43,24 +44,68 @@ app.use(passport.session());
 
 mongoose.connect("mongodb://localhost:27017/userDB",{useNewUrlParser:true});
 
+
+/* 
+user{ 
+   userid:object
+  email:String,
+  password:String,
+   firstName:String,
+   lastName:String,
+   phone:String,
+   college:CollegeID,
+   clubs: array of clubId
+   requests : array of Strings
+}
+
+college{
+   CollegeID: objectid
+	name:String
+	clubNames:array of clubId
+   students : array of userId
+   leader : userId
+}
+
+club{
+   clubId: objectid
+   name:String,
+	description: String
+   students : array of userId
+   leader : userId
+} */
+
 const userSchema=new mongoose.Schema({
    email:String,
    password:String,
    firstName:String,
    lastName:String,
    phone:String,
-   college: mongoose.ObjectId 
+   college:String,
+   clubs: [String]
 });
 
 const collegeSchema=new mongoose.Schema({
    collegename:String,
-   collegeid:String
+   collegeid:String,
+   clubNames:[String],
+   students : [String],
 });
+
+const clubSchema=new mongoose.Schema({
+   collegeid:String,
+   clubname:String,
+	description: String,
+});
+
+
 
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
 const User=new mongoose.model("User",userSchema);
 const College=new mongoose.model("College",collegeSchema);
+const Club=new mongoose.model("Club",clubSchema);
+
+
 passport.use(User.createStrategy());
 
 passport.serializeUser(User.serializeUser());
@@ -99,13 +144,83 @@ app.get("/forgot",(req,res)=>{
    res.render("forgot");
 });
 
-app.get("/colleges",(req,res)=>{
-   res.render("allcolleges",{authentication:false});
+app.get("/colleges",(req,res)=>{ // common route for both login and without login
+
+   College.find({},(err,colleges)=>{
+      var clgMap =[];
+      
+      colleges.forEach(function(clg) {
+         clgMap.push(clg.collegename);
+      });
+      console.log(clgMap);
+      res.render("allcolleges",{authentication:checkAuthentication(req),colleges:clgMap});
+
+   })
+   
 });
 
 app.get("/aboutus",(req,res)=>{
    
    res.render("about",{authentication:false});
+
+});
+
+
+app.get("/colleges/:collegename",(req,res)=>{
+
+   College.findOne({collegename:req.params.collegename},(err,doc)=>{
+      if(err){
+         console.log(err);
+      }
+      else{
+         Club.find({collegeid:doc.collegeid},(err,docs)=>{
+            if(err){
+               console.log(err);
+            }
+            else{
+               var clubMap=[];
+               docs.forEach((doc)=>{
+                  clubMap.push(doc.clubname);
+               })
+               res.render("college",{authentication:checkAuthentication(req),CollegeName:req.params.collegename,clubs:clubMap});
+      
+            }
+         });
+      }
+   })
+ 
+
+});
+
+app.get("/colleges/:collegename/:club",(req,res)=>{
+   var obj=req.params;
+   College.findOne({collegename:req.params.collegename},(err,clg)=>{
+      if(err){
+         console.log(err);
+      }
+      else{
+         Club.findOne({collegeid:clg.collegeid,clubname:req.params.club},(err,club)=>{
+            if(err){
+               console.log(err);
+            }
+            else{
+               
+               res.render("club",{authentication:checkAuthentication(req),Clubname:club.clubname,Description:club.description});
+      
+            }
+         });
+      }
+   })
+   
+});
+
+
+app.get("/addcollege",(req,res)=>{
+
+
+});
+
+app.get("/addclub",(req,res)=>{
 
 });
 
@@ -126,15 +241,24 @@ app.get("/loggedin/colleges/college",(req,res)=>{
  
    if(req.isAuthenticated()){
 
-      res.render("college",{authentication:true});  
+      console.log(req.user);
+      College.findOne({collegeid:req.user.college},(err,doc)=>{
+         
+         if(err){
+            console.log(err);
+         }
+         else{
+            res.render("college",{authentication:true,CollegeName:doc.collegename}); 
+         }
+
+      })
+       
    }
    else{
       res.redirect("/login");
    }
-      
-     
    
-})
+});
 
 app.get("/loggedin/home",(req,res)=>{
  
@@ -146,9 +270,7 @@ app.get("/loggedin/home",(req,res)=>{
       res.redirect("/");
    }
       
-     
-   
-})
+});
 app.get("/loggedin/aboutus",(req,res)=>{
 
    if(req.isAuthenticated()){
@@ -160,18 +282,7 @@ app.get("/loggedin/aboutus",(req,res)=>{
    }
       
    
-})
-app.get("/loggedin/colleges",(req,res)=>{
-   if(req.isAuthenticated()){
-
-      res.render("allcolleges",{authentication:true});  
-   }
-   else{
-      res.redirect("/colleges");
-   }
-    
-   
-})
+});
 
 //////////////////////////////Local Authentication Part/////////////////////////////////////////////
 
@@ -194,13 +305,13 @@ app.post("/register",(req,res)=>{
          console.log("register ",err);
       }
       else{
-         console.log(doc.id);
+        console.log(doc);
          User.register({
             username:req.body.username,
             firstName:req.body.fname,
             lastName:req.body.lname,
             phone:req.body.phone,
-            college:doc.id
+            college:doc.collegeid
             },req.body.password,(err,user)=>{
             if(err){
                console.log(err);
@@ -208,7 +319,7 @@ app.post("/register",(req,res)=>{
             }
             else{
                passport.authenticate("local")(req,res,()=>{
-                  res.redirect("/login/home");
+                  res.redirect("/loggedin/home");
                });
                
             }
@@ -326,12 +437,10 @@ const middlewareAuthentication=(req,res,route)=>{
    }
 }
 
-// const details=req.user;
-//       College.find({_id:details.college},(err,docs)=>{
-//          if(err){
-//             console.log(err);
-//          }
-//          else{
-//             console.log(docs);
-//          }
-//       });
+
+const checkAuthentication=(req)=>{
+   if(req.isAuthenticated()){
+      return true;
+   }
+   return false;
+}

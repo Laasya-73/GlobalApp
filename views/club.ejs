@@ -6,15 +6,10 @@
   <%- include("partials/beforeLoginNavbar") -%>
 <% } %>
 
-<h1>List of Enrolled Colleges</h1>
+<h1><%=Clubname%></h1>
 
-<ul>
+<p><%= Description %></p>
 
-  <% colleges.forEach(function(college){ %>
-      <li> <a href="<%= `/colleges/${college}` %>"> <%= college %> </a></li>
-  <% }); %>
-
-</ul>
-
+<a href="">Join</a>
 
 <%- include("partials/footer") -%>
