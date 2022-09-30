@@ -207,7 +207,7 @@ app.get("/colleges/:collegename/:club",(req,res)=>{
             }
             else{
                
-               res.render("club",{authentication:checkAuthentication(req),Collegename:req.params.collegename,Clubname:club.clubname,Description:club.description});
+               res.render("club",{authentication:checkAuthentication(req),NumberOfStudents:club.students.length,Collegename:req.params.collegename,Clubname:club.clubname,Description:club.description});
       
             }
          });
@@ -263,6 +263,22 @@ app.post("/colleges/:collegename/:club/join",(req,res)=>{
                console.log(err);
             }
             else{
+               Club.findOne({collegename:req.user.college,clubname:req.params.club},(err,club)=>{
+                  if(err){
+                     console.log(err);
+                  }
+                  else{
+                     club.students.push(req.body.username);
+                     club.save((err,res)=>{
+                        if(err){
+                           console.log(err);
+                        }
+                        else{
+                           console.log(res);
+                        }
+                     })
+                  }
+               })
                user.clubs.push(req.params.club);
                user.save((err,result)=>{
                   if (err){
