@@ -1,0 +1,41 @@
+<%- include("../partials/header") -%>
+<%- include("../partials/afterLoginNavbar") -%>
+
+
+<div class="form">
+      
+  <h1>Fill the form to join the club </h1>  
+  <h2>College: <%= CollegeName %></h2>
+  <h2>Club: <%= ClubName %></h2>
+  <div class="tab-content">
+    <div id="signup">   
+      <h1><%= Prompt %></h1>
+      
+      <form action="<%= `/colleges/${CollegeName}/${ClubName}/join` %>" method="post">
+      
+      
+      <div class="field-wrap">
+        <label>
+          Register Email Address<span class="req">*</span>
+        </label>
+        <input type="email"required autocomplete="off" name="username"/>
+      </div>
+
+      <div class="field-wrap">
+          <label>
+            Why join<span class="req">*</span>
+          </label>
+          <input type="tel"required name="whyjoin" autocomplete="off"/>
+      </div>
+      
+
+      <button type="submit" class="button button-block"/>JOIN</button>
+      
+      </form>
+
+    </div>
+   
+    
+
+
+<%- include("../partials/footer") -%>

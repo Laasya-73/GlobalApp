@@ -3,4 +3,12 @@
 
 <h1>My profile</h1>
 
+<h2>Clubs You joined</h2>
+
+<ul>
+  <% Clubs.forEach((club)=>{ %>
+    <li><%= club %></li>
+  <% }) %>
+</ul>
+
 <%- include("../partials/footer") -%>

@@ -87,7 +87,6 @@ const userSchema=new mongoose.Schema({
 const collegeSchema=new mongoose.Schema({
    collegename:String,
    collegeid:String,
-   clubNames:[String],
    students : [String],
 });
 
@@ -95,6 +94,7 @@ const clubSchema=new mongoose.Schema({
    collegeid:String,
    clubname:String,
 	description: String,
+   students:[String]
 });
 
 
@@ -128,7 +128,9 @@ passport.use(new GoogleStrategy({
 /////////////////////The Routes for the Common Pages before Login////////////////////////////////////
 
 app.get("/",  (req, res) => {
-   res.render("home",{authentication:false});
+   
+   res.render("home",{authentication:checkAuthentication(req)});
+      
 });
 
 
@@ -161,28 +163,28 @@ app.get("/colleges",(req,res)=>{ // common route for both login and without logi
 
 app.get("/aboutus",(req,res)=>{
    
-   res.render("about",{authentication:false});
+   res.render("about",{authentication:checkAuthentication(req)});
 
 });
 
 
 app.get("/colleges/:collegename",(req,res)=>{
 
-   College.findOne({collegename:req.params.collegename},(err,doc)=>{
+   College.findOne({collegename:req.params.collegename},(err,clg)=>{
       if(err){
          console.log(err);
       }
       else{
-         Club.find({collegeid:doc.collegeid},(err,docs)=>{
+         Club.find({collegeid:clg.collegeid},(err,clubs)=>{
             if(err){
                console.log(err);
             }
             else{
                var clubMap=[];
-               docs.forEach((doc)=>{
-                  clubMap.push(doc.clubname);
-               })
-               res.render("college",{authentication:checkAuthentication(req),CollegeName:req.params.collegename,clubs:clubMap});
+               clubs.forEach((club)=>{
+                  clubMap.push(club.clubname);
+               });
+               res.render("college",{authentication:checkAuthentication(req),CollegeName:req.params.collegename,clubs:clubMap,NumberOfStudents:clg.students.length});
       
             }
          });
@@ -193,7 +195,7 @@ app.get("/colleges/:collegename",(req,res)=>{
 });
 
 app.get("/colleges/:collegename/:club",(req,res)=>{
-   var obj=req.params;
+   
    College.findOne({collegename:req.params.collegename},(err,clg)=>{
       if(err){
          console.log(err);
@@ -205,7 +207,7 @@ app.get("/colleges/:collegename/:club",(req,res)=>{
             }
             else{
                
-               res.render("club",{authentication:checkAuthentication(req),Clubname:club.clubname,Description:club.description});
+               res.render("club",{authentication:checkAuthentication(req),Collegename:req.params.collegename,Clubname:club.clubname,Description:club.description});
       
             }
          });
@@ -215,25 +217,96 @@ app.get("/colleges/:collegename/:club",(req,res)=>{
 });
 
 
-app.get("/addcollege",(req,res)=>{
+app.get("/colleges/:collegename/list/students",(req,res)=>{
+
+  
+   College.findOne({collegename:req.params.collegename},(err,clg)=>{
+      if(err){
+         console.log(err);
+      }
+      else{
+         var students=clg.students;
+
+         res.render("listofstudents",{
+            authentication:checkAuthentication(req),
+            CollegeName:req.params.collegename,
+            NumberOfStudents:students.length,
+            Students:students
+         });
+
+      }
+   });
+
+});
+
+app.get("/colleges/:collegename/:club/join",(req,res)=>{
+
+   if(req.isAuthenticated()){
+
+      res.render("afterlogin/joinclubform",{Prompt:"Join Re",CollegeName:req.params.collegename,ClubName:req.params.club})
+
+   }
+   else{
+      res.redirect("/login");
+   }
+
+
+});
+app.post("/colleges/:collegename/:club/join",(req,res)=>{
+
+   if(req.isAuthenticated() ){
+
+      if(req.user.username===req.body.username){
+
+         User.findOne({username:req.body.username},(err,user)=>{
+            if(err){
+               console.log(err);
+            }
+            else{
+               user.clubs.push(req.params.club);
+               user.save((err,result)=>{
+                  if (err){
+                     console.log(err);
+                 }
+                 else{
+                     console.log(result)
+                 }
+               })
+               res.send("Succesfully Joined the "+req.params.club);
+               
+            }
+         }) 
+
+      }
+      else{
+         res.render("afterlogin/joinclubform",{Prompt:"Enter valid Email Address",
+            CollegeName:req.params.collegename,ClubName:req.params.club})
+
+      }
+   }
+   else{
+      res.redirect("/login");
+   }
 
 
 });
 
-app.get("/addclub",(req,res)=>{
 
-});
+
 
 ///////////////////////////////Routes for pages after login//////////////////////////////////////////
 
-// app.get("/colleges/:college",(req,res)=>{
-//    res.render("college",{collegeName:req.params.college});
-
-// });
 
 app.get("/loggedin/myprofile",(req,res)=>{
 
-   middlewareAuthentication(req,res,"afterlogin/myprofile");
+   if(req.isAuthenticated()){
+
+
+      res.render("afterlogin/myprofile",{Clubs:req.user.clubs});
+   }
+   else{
+      res.redirect("/login");
+   }
    
 });
 
@@ -260,29 +333,7 @@ app.get("/loggedin/colleges/college",(req,res)=>{
    
 });
 
-app.get("/loggedin/home",(req,res)=>{
- 
-   if(req.isAuthenticated()){
 
-      res.render("home",{authentication:true});  
-   }
-   else{
-      res.redirect("/");
-   }
-      
-});
-app.get("/loggedin/aboutus",(req,res)=>{
-
-   if(req.isAuthenticated()){
-
-      res.render("about",{authentication:true});  
-   }
-   else{
-      res.redirect("/aboutus");
-   }
-      
-   
-});
 
 //////////////////////////////Local Authentication Part/////////////////////////////////////////////
 
@@ -300,18 +351,28 @@ app.get("/logout",(req,res)=>{
 
 app.post("/register",(req,res)=>{
    
-   College.findOne({collegename:req.body.college},(err,doc)=>{
+   College.findOne({collegename:req.body.college},(err,clg)=>{
       if(err){
          console.log("register ",err);
       }
       else{
-        console.log(doc);
+         
+         clg.students.push(req.body.username);
+         clg.save(function(err,result){
+            if (err){
+                console.log(err);
+            }
+            else{
+                console.log(result)
+            }
+        })
+         
          User.register({
             username:req.body.username,
             firstName:req.body.fname,
             lastName:req.body.lname,
             phone:req.body.phone,
-            college:doc.collegeid
+            college:clg.collegeid
             },req.body.password,(err,user)=>{
             if(err){
                console.log(err);
@@ -319,7 +380,7 @@ app.post("/register",(req,res)=>{
             }
             else{
                passport.authenticate("local")(req,res,()=>{
-                  res.redirect("/loggedin/home");
+                  res.redirect("/");
                });
                
             }
@@ -344,7 +405,7 @@ app.post("/login",(req,res)=>{
       else{
          passport.authenticate("local", {failureRedirect:'/loginerror' })(req,res,()=>{
             
-            res.redirect("/loggedin/home");
+            res.redirect("/");
          });
          
       }
@@ -425,17 +486,6 @@ app.listen(port, ()=> {
    
    console.log("Listening at ",port)
 });
-
-
-const middlewareAuthentication=(req,res,route)=>{
-   if(req.isAuthenticated()){
-      
-      res.render(route,{authentication:true});
-   }
-   else{
-      res.redirect("/login");
-   }
-}
 
 
 const checkAuthentication=(req)=>{

@@ -5,11 +5,11 @@
 <% } else { %>
   <%- include("partials/beforeLoginNavbar") -%>
 <% } %>
-
+<h1><%=Collegename%></h1>
 <h1><%=Clubname%></h1>
 
 <p><%= Description %></p>
 
-<a href="">Join</a>
+<a href="<%= `/colleges/${Collegename}/${Clubname}/join` %>">Join</a>
 
 <%- include("partials/footer") -%>

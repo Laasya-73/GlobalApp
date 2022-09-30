@@ -12,20 +12,18 @@
 
 <h2>Number of students: <%= NumberOfStudents %></h2>
 
-<a href="<%= `/colleges/${CollegeName}/list/students` %>">List of students</a>
-
-<h2>List of clubs</h2>
+<h2>List of Students</h2>
 
 <ul>
-  <% if(clubs.length > 0){ %>
+  <% if(Students.length > 0){ %>
 
-      <% clubs.forEach((club)=>{ %>
+      <% Students.forEach((Student)=>{ %>
 
-        <li> <a href="<%= `/colleges/${CollegeName}/${club}` %>"> <%= club %></a></li>
+        <li> <a href=""> <%= Student %></a></li>
 
      <% }); %>
   <% } else { %>
-    No clubs added to your college.
+    No Students added to your college.
   <% } %>
   
 </ul>
